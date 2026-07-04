@@ -5,7 +5,9 @@
 #include <windows.h>
 
 // === РАЗРАБОТЧИК АЛГОРИТМОВ: Трошин Олег ===
-// Версия: 1.3 (28.06.2026) - добавлен модуль тестирования
+// === РАЗРАБОТЧИК ИНТЕРФЕЙСА: Ковтун Алексей ===
+// === ТЕСТИРОВЩИК: Долгов Лев ===
+// Версия: 1.4 (29.06.2026) - добавлена обработка ошибок
 
 // Глобальные счётчики для статистики
 long long comparison_count = 0;
@@ -92,10 +94,6 @@ int load_array_from_file(int arr[], int max_size, const char* filename) {
     return count;
 }
 
-// ============================================================
-// МОДУЛЬ ТЕСТИРОВАНИЯ (Долгов Лев)
-// ============================================================
-
 // Генерация отсортированного массива (лучший случай)
 void generate_sorted_array(int arr[], int n) {
     for (int i = 0; i < n; i++) {
@@ -126,7 +124,6 @@ void run_tests() {
     int test_sizes[] = { 100, 500, 1000, 5000, 10000 };
     int num_tests = 5;
     
-    // Открываем файл для записи результатов
     FILE* report = fopen("test_results.csv", "w");
     if (report == NULL) {
         printf("Ошибка: не удалось создать файл отчёта!\n");
@@ -147,37 +144,31 @@ void run_tests() {
             continue;
         }
         
-        // ===== ТЕСТ 1: Отсортированный массив =====
         generate_sorted_array(arr, n);
         clock_t start = clock();
         shell_sort(arr, n);
         clock_t end = clock();
         double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-        
         fprintf(report, "%d,Отсортированный,%lld,%lld,%.6f\n",
             n, comparison_count, swap_count, time_spent);
         printf("%-10d | %-15s | %-15lld | %-15lld | %-15.6f\n",
             n, "Отсортированный", comparison_count, swap_count, time_spent);
         
-        // ===== ТЕСТ 2: Случайный массив =====
         generate_random_array(arr, n);
         start = clock();
         shell_sort(arr, n);
         end = clock();
         time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-        
         fprintf(report, "%d,Случайный,%lld,%lld,%.6f\n",
             n, comparison_count, swap_count, time_spent);
         printf("%-10d | %-15s | %-15lld | %-15lld | %-15.6f\n",
             n, "Случайный", comparison_count, swap_count, time_spent);
         
-        // ===== ТЕСТ 3: Инвертированный массив =====
         generate_reverse_array(arr, n);
         start = clock();
         shell_sort(arr, n);
         end = clock();
         time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-        
         fprintf(report, "%d,Инвертированный,%lld,%lld,%.6f\n",
             n, comparison_count, swap_count, time_spent);
         printf("%-10d | %-15s | %-15lld | %-15lld | %-15.6f\n",
@@ -193,7 +184,7 @@ void run_tests() {
 }
 
 // ============================================================
-// ГЛАВНАЯ ФУНКЦИЯ
+// ГЛАВНАЯ ФУНКЦИЯ (С ОБРАБОТКОЙ ОШИБОК)
 // ============================================================
 
 int main() {
@@ -220,6 +211,7 @@ int main() {
         printf("0. Выход\n");
         printf("\nВыберите действие: ");
         
+        // ===== ОБРАБОТКА ОШИБОК ВВОДА =====
         if (scanf("%d", &choice) != 1) {
             printf("Ошибка: введён некорректный символ!\n");
             while (getchar() != '\n');
@@ -229,6 +221,7 @@ int main() {
         switch (choice) {
             case 1: {
                 printf("Введите размер массива: ");
+                // ===== ПРОВЕРКА РАЗМЕРА =====
                 if (scanf("%d", &size) != 1) {
                     printf("Ошибка: введён некорректный символ!\n");
                     while (getchar() != '\n');
@@ -238,6 +231,7 @@ int main() {
                     printf("Ошибка: размер должен быть больше 1!\n");
                     break;
                 }
+                // ===== ОСВОБОЖДЕНИЕ ПАМЯТИ =====
                 if (arr != NULL) {
                     free(arr);
                 }
@@ -270,6 +264,7 @@ int main() {
                     printf("Загружено %d элементов из файла %s\n", size, filename);
                 } else {
                     free(temp_arr);
+                    printf("Файл пуст или содержит некорректные данные!\n");
                 }
                 break;
             }
@@ -327,7 +322,7 @@ int main() {
             }
             
             case 6: {
-                run_tests();  // ===== ВЫЗОВ МОДУЛЯ ТЕСТИРОВАНИЯ =====
+                run_tests();
                 break;
             }
             
@@ -343,6 +338,7 @@ int main() {
         }
     } while (choice != 0);
     
+    // ===== ОСВОБОЖДЕНИЕ ПАМЯТИ =====
     if (arr != NULL) {
         free(arr);
     }
