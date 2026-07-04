@@ -5,7 +5,7 @@
 #include <windows.h>
 
 // === РАЗРАБОТЧИК АЛГОРИТМОВ: Трошин Олег ===
-// Версия: 1.0 (25.06.2026)
+// Версия: 1.1 (25.06.2026) - добавлен замер времени
 
 // Глобальные счётчики для статистики
 long long comparison_count = 0;
@@ -183,6 +183,7 @@ int main() {
                     sorted_arr[i] = arr[i];
                 }
                 
+                // ===== НОВЫЙ КОД: ЗАМЕР ВРЕМЕНИ =====
                 clock_t start = clock();
                 shell_sort(sorted_arr, size);
                 clock_t end = clock();
