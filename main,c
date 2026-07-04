@@ -5,13 +5,13 @@
 #include <windows.h>
 
 // === РАЗРАБОТЧИК АЛГОРИТМОВ: Трошин Олег ===
-// Версия: 1.2 (30.06.2026) - исправлен подсчёт сравнений
+// Версия: 1.3 (28.06.2026) - добавлен модуль тестирования
 
 // Глобальные счётчики для статистики
 long long comparison_count = 0;
 long long swap_count = 0;
 
-// Функция сортировки Шелла (С ИСПРАВЛЕННЫМ ПОДСЧЁТОМ)
+// Функция сортировки Шелла
 void shell_sort(int arr[], int n) {
     comparison_count = 0;
     swap_count = 0;
@@ -21,7 +21,6 @@ void shell_sort(int arr[], int n) {
             int temp = arr[i];
             int j;
             for (j = i; j >= gap; j -= gap) {
-                // ===== ИСПРАВЛЕНИЕ: считаем КАЖДОЕ сравнение =====
                 comparison_count++;
                 if (arr[j - gap] > temp) {
                     arr[j] = arr[j - gap];
@@ -93,7 +92,110 @@ int load_array_from_file(int arr[], int max_size, const char* filename) {
     return count;
 }
 
+// ============================================================
+// МОДУЛЬ ТЕСТИРОВАНИЯ (Долгов Лев)
+// ============================================================
+
+// Генерация отсортированного массива (лучший случай)
+void generate_sorted_array(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        arr[i] = i + 1;
+    }
+}
+
+// Генерация инвертированного массива (худший случай)
+void generate_reverse_array(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        arr[i] = n - i;
+    }
+}
+
+// Функция сравнения для qsort
+int cmp_int(const void* a, const void* b) {
+    int va = *(const int*)a;
+    int vb = *(const int*)b;
+    return (va > vb) - (va < vb);
+}
+
+// Функция автоматического тестирования
+void run_tests() {
+    printf("\n========================================\n");
+    printf("   ЗАПУСК ТЕСТОВ\n");
+    printf("========================================\n\n");
+    
+    int test_sizes[] = { 100, 500, 1000, 5000, 10000 };
+    int num_tests = 5;
+    
+    // Открываем файл для записи результатов
+    FILE* report = fopen("test_results.csv", "w");
+    if (report == NULL) {
+        printf("Ошибка: не удалось создать файл отчёта!\n");
+        return;
+    }
+    
+    fprintf(report, "Размер,Тип данных,Сравнений,Перестановок,Время(сек)\n");
+    
+    printf("%-10s | %-15s | %-15s | %-15s | %-15s\n",
+        "Размер", "Тип данных", "Сравнений", "Перестановок", "Время(сек)");
+    printf("----------+-----------------+-----------------+-----------------+-----------------\n");
+    
+    for (int t = 0; t < num_tests; t++) {
+        int n = test_sizes[t];
+        int* arr = (int*)malloc(n * sizeof(int));
+        if (arr == NULL) {
+            printf("Ошибка выделения памяти для n=%d\n", n);
+            continue;
+        }
+        
+        // ===== ТЕСТ 1: Отсортированный массив =====
+        generate_sorted_array(arr, n);
+        clock_t start = clock();
+        shell_sort(arr, n);
+        clock_t end = clock();
+        double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+        
+        fprintf(report, "%d,Отсортированный,%lld,%lld,%.6f\n",
+            n, comparison_count, swap_count, time_spent);
+        printf("%-10d | %-15s | %-15lld | %-15lld | %-15.6f\n",
+            n, "Отсортированный", comparison_count, swap_count, time_spent);
+        
+        // ===== ТЕСТ 2: Случайный массив =====
+        generate_random_array(arr, n);
+        start = clock();
+        shell_sort(arr, n);
+        end = clock();
+        time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+        
+        fprintf(report, "%d,Случайный,%lld,%lld,%.6f\n",
+            n, comparison_count, swap_count, time_spent);
+        printf("%-10d | %-15s | %-15lld | %-15lld | %-15.6f\n",
+            n, "Случайный", comparison_count, swap_count, time_spent);
+        
+        // ===== ТЕСТ 3: Инвертированный массив =====
+        generate_reverse_array(arr, n);
+        start = clock();
+        shell_sort(arr, n);
+        end = clock();
+        time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+        
+        fprintf(report, "%d,Инвертированный,%lld,%lld,%.6f\n",
+            n, comparison_count, swap_count, time_spent);
+        printf("%-10d | %-15s | %-15lld | %-15lld | %-15.6f\n",
+            n, "Инвертированный", comparison_count, swap_count, time_spent);
+        
+        printf("----------+-----------------+-----------------+-----------------+-----------------\n");
+        free(arr);
+    }
+    
+    fclose(report);
+    printf("\nРезультаты тестов сохранены в файл: test_results.csv\n");
+    printf("========================================\n");
+}
+
+// ============================================================
 // ГЛАВНАЯ ФУНКЦИЯ
+// ============================================================
+
 int main() {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
@@ -225,8 +327,7 @@ int main() {
             }
             
             case 6: {
-                printf("Запуск тестов...\n");
-                printf("(Функция тестирования будет добавлена позже)\n");
+                run_tests();  // ===== ВЫЗОВ МОДУЛЯ ТЕСТИРОВАНИЯ =====
                 break;
             }
             
