@@ -5,13 +5,13 @@
 #include <windows.h>
 
 // === РАЗРАБОТЧИК АЛГОРИТМОВ: Трошин Олег ===
-// Версия: 1.1 (25.06.2026) - добавлен замер времени
+// Версия: 1.2 (30.06.2026) - исправлен подсчёт сравнений
 
 // Глобальные счётчики для статистики
 long long comparison_count = 0;
 long long swap_count = 0;
 
-// Функция сортировки Шелла
+// Функция сортировки Шелла (С ИСПРАВЛЕННЫМ ПОДСЧЁТОМ)
 void shell_sort(int arr[], int n) {
     comparison_count = 0;
     swap_count = 0;
@@ -21,6 +21,7 @@ void shell_sort(int arr[], int n) {
             int temp = arr[i];
             int j;
             for (j = i; j >= gap; j -= gap) {
+                // ===== ИСПРАВЛЕНИЕ: считаем КАЖДОЕ сравнение =====
                 comparison_count++;
                 if (arr[j - gap] > temp) {
                     arr[j] = arr[j - gap];
@@ -183,7 +184,6 @@ int main() {
                     sorted_arr[i] = arr[i];
                 }
                 
-                // ===== НОВЫЙ КОД: ЗАМЕР ВРЕМЕНИ =====
                 clock_t start = clock();
                 shell_sort(sorted_arr, size);
                 clock_t end = clock();
